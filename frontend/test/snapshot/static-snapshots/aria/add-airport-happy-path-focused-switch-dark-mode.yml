@@ -1,0 +1,44 @@
+- banner:
+  - link "Airports dashboard":
+    - /url: /
+    - img
+    - text: Airports dashboard
+  - navigation:
+    - list:
+      - listitem:
+        - link "Airports":
+          - /url: /airports
+      - listitem:
+        - link "Add airport":
+          - /url: /airports/add
+  - switch "Dark mode" [checked]
+  - text: Dark mode
+- main:
+  - heading "Add airport" [level=1]
+  - text: Name
+  - textbox "Name"
+  - text: IATA Code
+  - textbox "IATA Code"
+  - text: Country
+  - combobox "Country": Select one
+  - text: Regions
+  - textbox "Regions test region to select"
+  - group:
+    - checkbox "test region to select"
+    - text: test region to select
+  - text: Vaccination Notes
+  - textbox "Vaccination Notes"
+  - button "Submit" [disabled]
+- contentinfo:
+  - paragraph:
+    - text: Written & produced by
+    - link "Łukasz Nowak":
+      - /url: https://linkedin.com/in/%C5%82ukasz-nowak-533844101
+    - text: .
+  - paragraph:
+    - text: For training purposes. Please share
+    - link "Link to repository":
+      - /url: https://github.com/LukaszNowakPL/bulletproof-frontend-testing
+      - img "Link to repository"
+    - text: if you found it sexy.
+- complementary

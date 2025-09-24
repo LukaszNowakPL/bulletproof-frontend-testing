@@ -1,0 +1,36 @@
+- banner:
+  - link "Airports dashboard":
+    - /url: /
+    - img
+    - text: Airports dashboard
+  - navigation:
+    - list:
+      - listitem:
+        - link "Airports":
+          - /url: /airports
+      - listitem:
+        - link "Add airport":
+          - /url: /airports/add
+  - switch "Dark mode" [checked]
+  - text: Dark mode
+- main:
+  - heading "Airports" [level=1]
+  - paragraph: Click an airport link to see its details.
+  - heading "test country name" [level=2]
+  - list
+- contentinfo:
+  - paragraph:
+    - text: Written & produced by
+    - link "Łukasz Nowak":
+      - /url: https://linkedin.com/in/%C5%82ukasz-nowak-533844101
+    - text: .
+  - paragraph:
+    - text: For training purposes. Please share
+    - link "Link to repository":
+      - /url: https://github.com/LukaszNowakPL/bulletproof-frontend-testing
+      - img "Link to repository"
+    - text: if you found it sexy.
+- complementary:
+  - status:
+    - img
+    - paragraph: Airport added successfully
