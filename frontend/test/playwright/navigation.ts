@@ -10,3 +10,7 @@ export const setDarkMode = async (page: Page, darkMode: boolean) => {
         await page.getByRole('switch', {name: /dark mode/i}).click();
     }
 };
+
+export const fetchDataAgain = async (page: Page) => {
+    await page.getByRole('button', {name: /restart data fetching/i}).click();
+};

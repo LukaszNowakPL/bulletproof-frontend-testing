@@ -14,3 +14,8 @@ export const assertDarkMode = async (page: Page, darkMode: boolean) => {
     const isDarkModeSet = await page.getByRole('switch', {name: /dark mode/i}).isChecked();
     return isDarkModeSet === darkMode;
 };
+
+export const assertFetchDataError = async (page: Page) => {
+    await expect(page.getByRole('alert')).toBeVisible();
+    await expect(page.getByText(/sorry, there is some connectivity error/i)).toBeVisible();
+};
