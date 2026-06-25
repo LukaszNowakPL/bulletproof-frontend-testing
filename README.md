@@ -8,6 +8,7 @@ The talks were performed during:
 
 - [Voxxed Days Crete](https://crete.voxxeddays.com/) conference talk (26-27.09.2025 - Heraklion, Crete Island, Greece)
 - [React Alicante](https://reactalicante.es/) workshop (02-04.10.2025 - Alicante, Spain)
+- [Voxxed Days Luxembourg](https://luxembourg.voxxeddays.com/en/) conference (19.06.2026 - Mondorf-les-Bains, Luxembourg)
 
 ## Project structure
 
