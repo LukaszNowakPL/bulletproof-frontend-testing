@@ -1,4 +1,4 @@
-import {Mockiavelli} from 'mockiavelli';
+import {PayloadCall} from '../playwright/api-mocks/utils/PayloadCall';
 import {test, expect} from '../playwright/fixtures';
 import {LIGHTHOUSE_SNAPSHOT_THRESHOLDS} from './utils/const';
 import {LighthousePlaywrightFlow} from './utils/Lighthouse/LighthousePlaywrightFlow';
@@ -16,12 +16,12 @@ import {assertDarkMode} from '../playwright/assertions';
 for (const darkMode of [true, false]) {
     test.describe(`With dark mode being ${darkMode ? 'on' : 'off'}`, () => {
         test.describe('Happy path', () => {
-            let mockiavelli: Mockiavelli;
+            let payloadCall: PayloadCall;
             let addAirportPage: AddAirportPage;
 
             test.beforeEach(async ({page}, testInfo) => {
                 const testSuite = 'Happy path';
-                mockiavelli = await Mockiavelli.setup(page);
+                payloadCall = new PayloadCall(page);
                 addAirportPage = new AddAirportPage(page, testInfo, testSuite, darkMode);
             });
 
@@ -84,7 +84,7 @@ for (const darkMode of [true, false]) {
                 await countriesMock(page, countries, 200, 3000);
                 await regionsMock(page, regions);
                 await airportsMock(page, []);
-                const postAirportMock = mockPostAirportsRequest(mockiavelli);
+                const postAirportMock = await mockPostAirportsRequest(payloadCall);
 
                 // When I go to the main page
                 await goTo(page, '/');
@@ -279,12 +279,12 @@ for (const darkMode of [true, false]) {
             });
         });
         test.describe('Negative path', () => {
-            let mockiavelli: Mockiavelli;
+            let payloadCall: PayloadCall;
             let addAirportPage: AddAirportPage;
 
             test.beforeEach(async ({page}, testInfo) => {
                 const testSuite = 'Negative path';
-                mockiavelli = await Mockiavelli.setup(page);
+                payloadCall = new PayloadCall(page);
                 addAirportPage = new AddAirportPage(page, testInfo, testSuite, darkMode);
             });
 
@@ -359,7 +359,7 @@ for (const darkMode of [true, false]) {
                     await regionsMock(page, regions, 500, 4);
                     await countriesMock(page, countries);
                     await airportsMock(page, []);
-                    const postAirportMock = mockPostAirportsRequest(mockiavelli, 500);
+                    const postAirportMock = await mockPostAirportsRequest(payloadCall, 500);
 
                     // When I go to the main page
                     await goTo(page, '/');

@@ -12,8 +12,6 @@ export class DockerApi {
     constructor(private imageName: string) {}
 
     async createContainer(cmd: string[]) {
-        process.env.PLAYWRIGHT_PORT = DockerApi.portNumber;
-
         console.log('Spawning chrome docker container.');
         try {
             await DockerApi.axiosInstance.post(`/containers/create?name=${this.CHROME_CONTAINER_NAME}`, {
@@ -39,7 +37,7 @@ export class DockerApi {
 
     async getContainerStatus(): Promise<string> {
         const {data} = await DockerApi.axiosInstance.get<any>(`/containers/${this.CHROME_CONTAINER_NAME}/json`);
-        return data.State.State;
+        return data.State.Status;
     }
 
     async pullImage() {
@@ -78,7 +76,13 @@ export class DockerApi {
     async findContainer() {
         try {
             const {data} = await DockerApi.axiosInstance.get<any[]>('/containers/json?all=true');
-            return data.find((containerInfo) => containerInfo.Names.some((name: string) => name.includes(this.CHROME_CONTAINER_NAME)));
+            const container = data.find((containerInfo) => containerInfo.Names.some((name: string) => name.includes(this.CHROME_CONTAINER_NAME)));
+            if(!container) {
+                console.log(`Container ${this.CHROME_CONTAINER_NAME} not found.`)
+            } else {
+                console.log(`Container ${this.CHROME_CONTAINER_NAME} is already created.`)
+            }
+            return container
         } catch (e) {
             console.log('Error while finding container.');
             console.log(e);
@@ -106,6 +110,9 @@ export class DockerApi {
     }
 
     async startContainer() {
+        console.log(`Setting PLAYWRIGHT_PORT env to ${DockerApi.portNumber}`)
+        process.env.PLAYWRIGHT_PORT = DockerApi.portNumber;
+
         try {
             await DockerApi.axiosInstance.post(`/containers/${this.CHROME_CONTAINER_NAME}/start`);
             console.log('Started chrome docker container.');

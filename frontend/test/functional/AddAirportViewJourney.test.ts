@@ -1,6 +1,6 @@
 import {expect} from '@playwright/test';
 import {test} from '../playwright/fixtures';
-import {Mockiavelli} from 'mockiavelli';
+import {PayloadCall} from '../playwright/api-mocks/utils/PayloadCall';
 import {AddAirportPage} from './pages/AddAirportPage';
 import {AirportModel} from '../../src/api/rest/airports.dto';
 import {countriesMock} from '../playwright/api-mocks/countries';
@@ -13,11 +13,11 @@ import {countryFactory} from '../utils/factories/countries';
 import {regionFactory} from '../utils/factories/regions';
 
 test.describe('Add airport journey', () => {
-    let mockiavelli: Mockiavelli;
+    let payloadCall: PayloadCall;
     let addAirportPage: AddAirportPage;
 
     test.beforeEach(async ({page}) => {
-        mockiavelli = await Mockiavelli.setup(page);
+        payloadCall = new PayloadCall(page);
         addAirportPage = new AddAirportPage(page);
     });
 
@@ -50,7 +50,7 @@ test.describe('Add airport journey', () => {
             await countriesMock(page, [country]);
             await regionsMock(page, [region]);
             await airportsMock(page, []);
-            const postAirportMock = mockPostAirportsRequest(mockiavelli);
+            const postAirportMock = await mockPostAirportsRequest(payloadCall);
 
             // When I go to Add airport page
             await goTo(page, '/airports/add');
@@ -67,8 +67,7 @@ test.describe('Add airport journey', () => {
             await addAirportPage.clickSubmitButton();
 
             // Then POST api call is resolved with expected body
-            const postAirportRequest = await postAirportMock.waitForRequest();
-            expect(postAirportRequest.body).toEqual(airport);
+            expect(await postAirportMock.getRequestBody()).toEqual(airport);
 
             // And addition confirmation is displayed after api call is resolved
             await addAirportPage.assertAdditionConfirmationDisplay();
@@ -112,7 +111,7 @@ test.describe('Add airport journey', () => {
                 await regionsMock(page, [], 500, 4);
                 await countriesMock(page, [country]);
                 await airportsMock(page, []);
-                const postAirportMock = mockPostAirportsRequest(mockiavelli, 500);
+                const postAirportMock = await mockPostAirportsRequest(payloadCall, 500);
 
                 // When I go to Add airport page
                 await goTo(page, '/airports/add');
@@ -135,8 +134,7 @@ test.describe('Add airport journey', () => {
                 await addAirportPage.clickSubmitButton();
 
                 // Then POST api call is called with expected body and rejected
-                const postAirportRequest = await postAirportMock.waitForRequest();
-                expect(postAirportRequest.body).toEqual(airport);
+                expect(await postAirportMock.getRequestBody()).toEqual(airport);
 
                 // And addition error is displayed after api call is rejected
                 await addAirportPage.assertAdditionErrorDisplay();

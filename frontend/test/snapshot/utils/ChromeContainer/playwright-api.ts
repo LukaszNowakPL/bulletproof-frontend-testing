@@ -23,15 +23,24 @@ export class PlaywrightApi {
             '-e',
             `const {chromium} = require('playwright-core');
                 chromium.launchServer({
+                    host: '0.0.0.0',
                     port: ${DockerApi.portNumber},
                     wsPath: 'string',
-                }).then((server) => console.log("Docker browser server started."));`,
+                }).then((server) => {
+                    console.log("Docker browser server started.");
+                    console.log(server.wsEndpoint())
+                })
+                .catch(err => {
+                    console.error(err);
+                    process.exit(1);
+                });
+            `,
         ];
     }
 
     async sendPlaywrightCoreToContainer(containerName: string) {
         try {
-            console.log('Sending playwrigh-core to docker.');
+            console.log('Sending playwright-core to docker.');
             await this.axiosInstance.put(
                 `/containers/${containerName}/archive?path=/`,
                 create({gzip: true, preservePaths: true}, ['node_modules/playwright-core']),

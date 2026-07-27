@@ -9,7 +9,7 @@ import type {
     PlaywrightTestArgs,
     PlaywrightWorkerArgs,
 } from 'playwright/types/test';
-import {Mockiavelli} from 'mockiavelli';
+import {PayloadCall} from "./api-mocks/utils/PayloadCall";
 
 // This pattern assures type safety of test extension provided by the fixture
 const typedTestObject: TestType<PlaywrightTestArgs & PlaywrightTestOptions, PlaywrightWorkerArgs & PlaywrightWorkerOptions> = base;
@@ -30,8 +30,8 @@ export const test = typedTestObject.extend<TestExtendOptions, {page: void}>({
         const consoleEntries: string[] = [];
         page.on('console', (m: ConsoleMessage) => consoleEntries.push(m.location().url));
 
-        // Attaching Mockiavelli to generate console entry once no mock for triggered api call is created
-        await Mockiavelli.setup(page);
+        // Attaching PayloadCall to generate console entry once no mock for triggered api call is created
+        new PayloadCall(page);
 
         // Performing normal test
         await use(page);
