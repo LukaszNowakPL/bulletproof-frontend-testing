@@ -28,6 +28,7 @@ export const FormContainer: React.FC<FormContainerProps> = ({children, airports}
                 setNotification({color: 'red', text: 'Error while adding an airport'});
             };
             await addAirport({data: mapAirportFormToModel(values), onSuccessCallback, onErrorCallback});
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (error) {
             // Muting errors as they are handled by onErrorCallback
         }
