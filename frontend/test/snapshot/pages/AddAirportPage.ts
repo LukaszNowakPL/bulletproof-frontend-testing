@@ -27,7 +27,7 @@ export class AddAirportPage extends SnapshotPage {
         await this.page.getByRole('combobox', {name: /country/i}).click();
         await this.page.getByRole('option', {name: country}).click();
         await this.page.getByRole('checkbox', {name: region}).click();
-        await this.page.getByRole('textbox', {name: /vaccination notes/i}).fill(data.vaccination_notes as string);
+        await this.page.getByRole('textbox', {name: /vaccination notes/i}).fill(data.vaccination_notes!);
     }
 
     public async assertSubmitEnabled() {

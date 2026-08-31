@@ -1,5 +1,5 @@
 import {screen, waitForElementToBeRemoved} from '@testing-library/react';
-import {describe, vi} from 'vitest';
+import {describe} from 'vitest';
 import {renderWithContexts} from '../utils/render';
 import {server} from '../mocks/server';
 import {addAirportHandler, airportsHandler} from '../api-handlers/airports';
@@ -43,12 +43,6 @@ describe('AddAirportView.guard', () => {
          */
         it('renders component and adds airport', async () => {
             /**
-             * Required by radix-ui components used on tested view.
-             */
-            window.HTMLElement.prototype.scrollIntoView = vi.fn();
-            window.HTMLElement.prototype.hasPointerCapture = vi.fn();
-
-            /**
              * Right now we set the scene for future testing.
              * Any piece of data used during the scenario (i.e. typed into field or sent through the api call) should get set here. Anything else should get randomized.
              * Please note the Gherkin notation used. It really helps understanding what happens during the scenario.
@@ -56,28 +50,19 @@ describe('AddAirportView.guard', () => {
              */
 
             /**
-             * This country name is going to be used during the test. It might be randomized, however, it's more convenient to operate on some constant values.
-             *
-             * Note the name used, which clearly states what piece of information it is and that it is used for testing purposes.
-             */
-            // Given country name
-            const countryName = 'test country name';
-
-            /**
-             * Right now we build other pieces of data based on the ones set before.
-             *
              * The country object is going to be used as a response of a Get api call, as well as part of the Post request body.
-             * Id of a country is randomized. That's ok, as we will use it rather for asserting integration points than displaying on the screen.
+             * That's why the test is an owner of its value, and its source of value should get created at the beginning of the case.
+             *
+             * Most of the object data can get randomized as we're going to use it rather for asserting integration points than displaying on the screen.
+             * This does not apply to country name which then is hardcoded.
+             * Note the string construction. It clearly states what piece of information it is and that it is used for testing purposes. It simplifies  further debugging a lot.
              */
-            // And a country object
-            const country = countryFactory.build({name: countryName});
-
-            // And name of a region to select
-            const regionName = 'test region to select';
+            // Given country object
+            const country = countryFactory.build({name: 'test country name'});
 
             // And region object
             const region = regionFactory.build({
-                name: regionName,
+                name: 'test region to select',
             });
 
             /**
@@ -88,7 +73,7 @@ describe('AddAirportView.guard', () => {
              * The crucial thing is that all data used during the test has to be aligned. This is because the Post request body reflects all previous actions taken by the user during the test.
              */
             // And new airport data
-            const airport: AirportModel = {
+            const newAirport: AirportModel = {
                 name: 'test airport name',
                 iata: 'TES',
                 country_id: country.id,
@@ -106,7 +91,11 @@ describe('AddAirportView.guard', () => {
              * It's good pattern, as the test scenario should be aware of data it operates on. As stated previously, it is a mixture of hardcoded and randomized data (if it's not relevant for such a test case).
              */
             // And mocks of api calls triggered during the test
-            server.use(countriesHandler([country]), regionsHandler([region]), airportsHandler([]), addAirportHandler(airport));
+            const isPostApiDelay = true
+            server.use(countriesHandler([country]), regionsHandler([region]), airportsHandler([]), addAirportHandler(newAirport, 200, isPostApiDelay));
+
+            // And user-event setup, via https://testing-library.com/docs/user-event/intro/#writing-tests-with-userevent
+            const user = userEvent.setup()
 
             /**
              * Now we pass the tested view to the component wrapper, which takes care of rendering within the context of high level integrations.
@@ -142,16 +131,18 @@ describe('AddAirportView.guard', () => {
              * We know the tested view is in the expected state now, so we can perform user actions, using data defined beforehand.
              */
             // When user fulfill entire form
-            await userEvent.type(screen.getByRole('textbox', {name: /name/i}), airport.name);
-            await userEvent.type(screen.getByRole('textbox', {name: /iata code/i}), airport.iata);
-            await userEvent.click(screen.getByRole('combobox', {name: /country/i}));
-            await userEvent.click(screen.getByRole('option', {name: country.name}));
-            await userEvent.click(screen.getByRole('checkbox', {name: region.name}));
-            await userEvent.type(screen.getByRole('textbox', {name: /vaccination notes/i}), airport.vaccination_notes as string);
+            await user.type(screen.getByRole('textbox', {name: /name/i}), newAirport.name);
+            await user.type(screen.getByRole('textbox', {name: /iata code/i}), newAirport.iata);
+            await user.click(screen.getByRole('combobox', {name: /country/i}));
+            // We don't use data from newAirport object, as it contains id of existing country only. Here we use same source of data the id of country was taken from (country object).
+            await user.click(screen.getByRole('option', {name: country.name}));
+            await user.click(screen.getByRole('checkbox', {name: region.name}));
+            await user.type(screen.getByRole('textbox', {name: /vaccination notes/i}), newAirport.vaccination_notes!);
 
             // And send the data to the backend
-            await userEvent.click(screen.getByRole('button', {name: /submit/i}));
+            await user.click(screen.getByRole('button', {name: /submit/i}));
 
+            // The Post Api call is resolved with randomized, realistic delay. That's why we can perform such checks.
             // Then all form elements are disabled during api call
             const disabledElements = [
                 ...screen.getAllByRole('textbox'),
@@ -159,13 +150,12 @@ describe('AddAirportView.guard', () => {
                 ...screen.getAllByRole('checkbox'),
                 ...screen.getAllByRole('button'),
             ];
-            for (let i in disabledElements) {
-                expect(disabledElements[i]).toBeDisabled();
+            for (const element of disabledElements) {
+                expect(element).toBeDisabled();
             }
 
             // And addition confirmation is displayed after api call is resolved
             const confirmationMessage = await screen.findByRole('status');
-            expect(confirmationMessage).toBeInTheDocument();
             expect(confirmationMessage).toHaveTextContent(/airport added successfully/i);
 
             // And client is redirected to /airports page
@@ -189,7 +179,7 @@ describe('AddAirportView.guard', () => {
          * As the behavior is the same for any endpoint, we can use 'each' grouping pattern here.
          */
         it.each<string>(['airports', 'countries', 'regions'])(
-            'displays connectivity error on GET: /%s api call failure',
+            'displays connectivity error when GET /%s fails',
             async (failingEndpoint) => {
                 /**
                  * All endpoints may return empty arrays. We won't use them on tests, because we want Error message to be displayed.
@@ -201,6 +191,9 @@ describe('AddAirportView.guard', () => {
                     regionsHandler([], failingEndpoint !== 'regions' ? 200 : 500),
                 );
 
+                // And user-event setup
+                const user = userEvent.setup()
+
                 // When component render
                 renderWithContexts(<AddAirportViewGuard />, {routingPath: '/airports/add', browserUrl: '/airports/add'});
 
@@ -209,9 +202,7 @@ describe('AddAirportView.guard', () => {
                  */
 
                 // Then error message is displayed
-                const alert = await screen.findByRole('alert');
-                expect(alert).toBeInTheDocument();
-                expect(alert).toHaveTextContent(/sorry, there is some connectivity error/i);
+                expect(await screen.findByRole('alert')).toHaveTextContent(/sorry, there is some connectivity error/i);
                 const restartButton = await screen.findByRole('button', {name: /restart data fetching/i});
                 expect(restartButton).toBeInTheDocument();
 
@@ -220,7 +211,7 @@ describe('AddAirportView.guard', () => {
                  */
 
                 // When user click restart button
-                await userEvent.click(restartButton);
+                await user.click(restartButton);
 
                 // Then loading indicator appears
                 expect(await screen.findByRole('progressbar', {name: /fetching data/i})).toBeInTheDocument();
@@ -232,9 +223,7 @@ describe('AddAirportView.guard', () => {
                 await waitForElementToBeRemoved(screen.queryByRole('progressbar'));
 
                 // Then error message is displayed back after another api call failure
-                const secondAlert = await screen.findByRole('alert');
-                expect(secondAlert).toBeInTheDocument();
-                expect(secondAlert).toHaveTextContent(/sorry, there is some connectivity error/i);
+                expect(await screen.findByRole('alert')).toHaveTextContent(/sorry, there is some connectivity error/i);
             },
         );
 
@@ -245,78 +234,56 @@ describe('AddAirportView.guard', () => {
          * Then we must provide all valid data, so the Submit button is enabled.
          * Then for each field respectively we must provide non-valid data, assert validation error appearance and Submit button disability.
          * Then we must provide valid data back and assert validation error disappearance as well as the Submit button being enabled.
+         *
+         * There is a trend to create test case per field. From my experience, however, this leads to tons of setting-up's boilerplate, as well as unintentional skipping checks of some fields.
+         * I recommend to perform assertions in one test case, travelling field-by-field in order of their appearance on the screen.
          */
         it('renders validation errors', async () => {
             /**
-             * Required by radix-ui components used on tested view.
-             */
-            window.HTMLElement.prototype.scrollIntoView = vi.fn();
-            window.HTMLElement.prototype.hasPointerCapture = vi.fn();
-
-            /**
              * We must set the scene as it was a happy path scenario, up to the Post api endpoint mock.
              */
-            // Given country object
             const country = countryFactory.build({name: 'test country name'});
-
-            // And region object
-            const region = regionFactory.build({
-                name: 'test region to select',
-            });
-
-            // And IATA code of existing airport
-            const existingAirportIata = 'AAA';
-
-            // And airport object
-            const existingAirport = airportFactory.build({iata: existingAirportIata});
-
-            // And IATA code of new airport (must be different from existing ones)
-            const airportIata = 'BBB';
-
-            /**
-             * This object will not be sent as a body of a Post api call, however its structure is helpful with fulfilling the form.
-             */
-            // And new airport data
-            const airport: AirportModel = {
+            const region = regionFactory.build({name: 'test region to select'});
+            const existingAirport = airportFactory.build({iata: 'AAA'});
+            // IATA code has to be unique
+            const validAirportIata = 'BBB';
+            // This object will not be sent as a body of a Post api call, however its structure is helpful with fulfilling the form.
+            const validAirport: AirportModel = {
                 name: 'test airport name',
-                iata: airportIata,
+                iata: validAirportIata,
                 country_id: country.id,
                 regions: [region.id],
                 vaccination_notes: 'test vaccination notes',
             };
-
-            // And mocks of all Get api calls triggered during the test
             server.use(countriesHandler([country]), regionsHandler([region]), airportsHandler([existingAirport]));
+            const user = userEvent.setup()
 
-            // When component render
+            // Given component is ready for data insertion
             renderWithContexts(<AddAirportViewGuard />, {routingPath: '/airports/add', browserUrl: '/airports/add'});
-
-            // Then page header is visible
             expect(await screen.findByRole('heading', {name: /add airport/i, level: 1})).toBeInTheDocument();
 
-            // And validation errors are not available
+            // And validation errors are not available initially
             expect(screen.queryByRole('alert')).not.toBeInTheDocument();
 
             // And submit button is disabled
             const submitButton = screen.getByRole('button', {name: /submit/i});
-            expect(submitButton).toBeInTheDocument();
             expect(submitButton).toBeDisabled();
 
             const nameField = screen.getByRole('textbox', {name: /name/i});
             const iataField = screen.getByRole('textbox', {name: /iata code/i});
 
             // When user fulfill the entire form
-            await userEvent.type(nameField, airport.name);
-            await userEvent.type(iataField, airport.iata);
-            await userEvent.click(screen.getByRole('combobox', {name: /country/i}));
-            await userEvent.click(screen.getByRole('option', {name: country.name}));
-            await userEvent.click(screen.getByRole('checkbox', {name: region.name}));
-            await userEvent.type(screen.getByRole('textbox', {name: /vaccination notes/i}), airport.vaccination_notes as string);
+            await user.type(nameField, validAirport.name);
+            await user.type(iataField, validAirport.iata);
+            await user.click(screen.getByRole('combobox', {name: /country/i}));
+            await user.click(screen.getByRole('option', {name: country.name}));
+            await user.click(screen.getByRole('checkbox', {name: region.name}));
+            await user.type(screen.getByRole('textbox', {name: /vaccination notes/i}), validAirport.vaccination_notes!);
 
             // Then validation errors are not available
             expect(screen.queryByRole('alert')).not.toBeInTheDocument();
 
-            // And submit button is enabled
+            // And submit button becomes enabled
             expect(submitButton).toBeEnabled();
 
             /**
@@ -324,18 +291,16 @@ describe('AddAirportView.guard', () => {
              */
 
             // When user clear the name input
-            await userEvent.clear(nameField);
+            await user.clear(nameField);
 
             // Then validation message is displayed
-            const nameError = screen.getByRole('alert');
-            expect(nameError).toBeInTheDocument();
-            expect(nameError).toHaveTextContent(/airport name is required/i);
+            expect(screen.getByRole('alert')).toHaveTextContent(/airport name is required/i);
 
             // And submit button is disabled
             expect(submitButton).toBeDisabled();
 
             // When user provides a valid value back
-            await userEvent.type(nameField, airport.name);
+            await user.type(nameField, validAirport.name);
 
             // Then validation message disappears
             expect(screen.queryByRole('alert')).not.toBeInTheDocument();
@@ -344,47 +309,33 @@ describe('AddAirportView.guard', () => {
             expect(submitButton).toBeEnabled();
 
             // When user clear the IATA input
-            await userEvent.clear(iataField);
+            await user.clear(iataField);
 
-            // Then validation message is displayed
-            const iataError = screen.getByRole('alert');
-            expect(iataError).toBeInTheDocument();
-            expect(iataError).toHaveTextContent(/airport iata code is required/i);
-
-            // And submit button is disabled
+            // Then proper validation message is displayed which blocks data submission
+            expect(screen.getByRole('alert')).toHaveTextContent(/airport iata code is required/i);
             expect(submitButton).toBeDisabled();
 
             // When user provides IATA code of insufficient length
-            await userEvent.type(iataField, 'A');
+            await user.type(iataField, 'A');
 
-            // Then proper validation message is displayed
-            expect(iataError).toHaveTextContent(/iata code has to be 3 characters/i);
-
-            // And submit button is disabled
+            // Then proper validation message is displayed which also blocks data submission
+            expect(screen.getByRole('alert')).toHaveTextContent(/iata code has to be 3 characters/i);
             expect(submitButton).toBeDisabled();
 
-            // When user clear the IATA input
-            await userEvent.clear(iataField);
+            // When user provide IATA code which already exists
+            await user.clear(iataField);
+            await user.type(iataField, existingAirport.iata);
 
-            // And provide IATA code which already exists
-            await userEvent.type(iataField, existingAirportIata);
-
-            // Then proper validation message is displayed
-            expect(iataError).toHaveTextContent(/airport iata code has to be unique/i);
-
-            // And submit button is disabled
+            // Then proper validation message is displayed which also blocks data submission
+            expect(screen.getByRole('alert')).toHaveTextContent(/airport iata code has to be unique/i);
             expect(submitButton).toBeDisabled();
 
-            // When user clear the IATA input
-            await userEvent.clear(iataField);
+            // When user provide a valid value back
+            await user.clear(iataField);
+            await user.type(iataField, validAirport.iata);
 
-            // And provide a valid value back
-            await userEvent.type(iataField, airport.iata);
-
-            // Then validation message disappears
+            // Then validation message disappears which enables submit button
             expect(screen.queryByRole('alert')).not.toBeInTheDocument();
-
-            // And submit button is enabled
             expect(submitButton).toBeEnabled();
 
             /**
@@ -405,78 +356,63 @@ describe('AddAirportView.guard', () => {
              * We only must take care of the Post api responding with error and asserting the proper message is being displayed.
              */
 
-            /**
-             * Required by radix-ui components used on tested view.
-             */
-            window.HTMLElement.prototype.scrollIntoView = vi.fn();
-            window.HTMLElement.prototype.hasPointerCapture = vi.fn();
-
-            // Given country object
             const country = countryFactory.build({name: 'test country name'});
-
-            // And region object
             const region = regionFactory.build({
                 name: 'test region to select',
             });
-
-            // And new airport data
-            const airport: AirportModel = {
+            const newAirport: AirportModel = {
                 name: 'test airport name',
                 iata: 'TES',
                 country_id: country.id,
                 regions: [region.id],
                 vaccination_notes: 'test vaccination notes',
             };
-
-            // And mocks of all api calls triggered during the test
             server.use(
                 // Get endpoints
                 countriesHandler([country]),
                 regionsHandler([region]),
                 airportsHandler([]),
                 // Post endpoint responding with error
-                addAirportHandler(airport, 500),
+                addAirportHandler(newAirport, 500, true),
             );
+            const user = userEvent.setup()
 
-            // When component render
+            // Given component is ready for data insertion
             renderWithContexts(<AddAirportViewGuard />, {routingPath: '/airports/add', browserUrl: '/airports/add'});
-
-            // Then page header is visible
             expect(await screen.findByRole('heading', {name: /add airport/i, level: 1})).toBeInTheDocument();
 
             // When user fulfill the entire form with valid data
-            await userEvent.type(screen.getByRole('textbox', {name: /name/i}), airport.name);
-            await userEvent.type(screen.getByRole('textbox', {name: /iata code/i}), airport.iata);
-            await userEvent.click(screen.getByRole('combobox', {name: /country/i}));
-            await userEvent.click(screen.getByRole('option', {name: country.name}));
-            await userEvent.click(screen.getByRole('checkbox', {name: region.name}));
-            await userEvent.type(screen.getByRole('textbox', {name: /vaccination notes/i}), airport.vaccination_notes as string);
+            await user.type(screen.getByRole('textbox', {name: /name/i}), newAirport.name);
+            await user.type(screen.getByRole('textbox', {name: /iata code/i}), newAirport.iata);
+            await user.click(screen.getByRole('combobox', {name: /country/i}));
+            await user.click(screen.getByRole('option', {name: country.name}));
+            await user.click(screen.getByRole('checkbox', {name: region.name}));
+            await user.type(screen.getByRole('textbox', {name: /vaccination notes/i}), newAirport.vaccination_notes!);
 
             // And send the data to the backend
-            await userEvent.click(screen.getByRole('button', {name: /submit/i}));
+            await user.click(screen.getByRole('button', {name: /submit/i}));
 
             // Then error message appears
             const errorMessage = await screen.findByRole('status');
-            expect(errorMessage).toBeInTheDocument();
             expect(errorMessage).toHaveTextContent(/error while adding an airport/i);
 
             // And all form elements are enabled back
-            const disabledElements = [
+            const interactiveElements = [
                 ...screen.getAllByRole('textbox'),
                 ...screen.getAllByRole('combobox'),
                 ...screen.getAllByRole('checkbox'),
                 ...screen.getAllByRole('button'),
             ];
-            for (let i in disabledElements) {
-                expect(disabledElements[i]).toBeEnabled();
+            for (const element of interactiveElements) {
+                expect(element).toBeEnabled();
             }
 
             // When user send the data to the backend again
-            await userEvent.click(screen.getByRole('button', {name: /submit/i}));
+            await user.click(screen.getByRole('button', {name: /submit/i}));
 
             // Then all form elements are disabled again
-            for (let i in disabledElements) {
-                expect(disabledElements[i]).toBeDisabled();
+            for (const element of interactiveElements) {
+                expect(element).toBeDisabled();
             }
         });
     });

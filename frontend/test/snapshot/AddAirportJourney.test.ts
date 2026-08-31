@@ -44,7 +44,7 @@ for (const darkMode of [true, false]) {
                         formFactor: 'mobile',
                     });
 
-                // And countries list available on the system
+                // And data being used during test case
                 const countries: CountriesDto = [
                     {
                         id: 1,
@@ -52,14 +52,10 @@ for (const darkMode of [true, false]) {
                         is_in_schengen: true,
                     },
                 ];
-
-                // And region to be selected during the test
                 const regionToSelect: RegionDto = {
                     id: 1,
                     name: 'test region to select',
                 };
-
-                // And regions available on the system
                 const regions: RegionsDto = [
                     regionToSelect,
                     {
@@ -67,9 +63,7 @@ for (const darkMode of [true, false]) {
                         name: 'test region not to select',
                     },
                 ];
-
-                // And new airport data
-                const airport: AirportModel = {
+                const newAirport: AirportModel = {
                     name: 'test airport name',
                     iata: 'TES',
                     country_id: countries[0].id,
@@ -86,58 +80,48 @@ for (const darkMode of [true, false]) {
                 await airportsMock(page, []);
                 const postAirportMock = await mockPostAirportsRequest(payloadCall);
 
-                // When I go to the main page
+                // And application being ready for navigation and in expected bright mode
                 await goTo(page, '/');
-
-                // And I set expected color scheme
                 await setDarkMode(page, darkMode);
-
-                // Then the dark mode is set
                 expect(assertDarkMode(page, darkMode)).toBeTruthy();
 
                 // When I navigate to Add airport page
                 await addAirportPage.navigateTo();
 
-                // Then I see a progress bar
+                // And I see a progress bar
                 await addAirportPage.assertProgressBarDisplay();
 
-                // When I perform snapshot analysis for progress bar
+                // Then I perform snapshot analysis for progress bar
                 await addAirportPage.performSnapshotAnalysis('Progress bar', {takeLighthouseSnapshot});
 
-                // Then I wait until the page is ready
+                // When I see the form is ready
                 await addAirportPage.assertReady();
 
-                // When I perform snapshot analysis for initial view
+                // Then I perform snapshot analysis for initial view
                 await addAirportPage.performSnapshotAnalysis('Initial view', {
                     takeLighthouseSnapshot,
                     skipAxeViolationChecks: true,
                 });
 
-                // And I fulfill the form with correct data
-                await addAirportPage.fulfillForm(airport, countries[0].name, regionToSelect.name);
-
-                // Then I can see the form data is valid and Submit button is enabled
+                // When I fulfill the form with correct data
+                await addAirportPage.fulfillForm(newAirport, countries[0].name, regionToSelect.name);
                 await addAirportPage.assertSubmitEnabled();
 
-                // When I perform snapshot analysis for provided data
+                // Then I perform snapshot analysis for provided data
                 await addAirportPage.performSnapshotAnalysis('Form filled', {takeLighthouseSnapshot});
 
-                // And I send data to the backend
+                // When I send data to the backend
                 await addAirportPage.sendData();
-
-                // And the POST endpoint resolves
                 await postAirportMock.waitForRequest();
-
-                // Then I can see successful addition confirmation
                 await addAirportPage.assertAdditionConfirmationDisplay();
 
-                // When I perform snapshot analysis for addition confirmation
+                // Then I perform snapshot analysis for addition confirmation
                 await addAirportPage.performSnapshotAnalysis('Airport added', {
                     takeLighthouseSnapshot,
                     skipAxeViolationChecks: true,
                 });
 
-                // Then I generate snapshot report
+                // And I generate snapshot report
                 await flow.generateReports(testInfo, 'lighthouse-test-add-airport-happy-path-flow.html', lighthouseThresholds);
             });
 
@@ -170,7 +154,7 @@ for (const darkMode of [true, false]) {
                         formFactor: 'mobile',
                     });
 
-                // And countries list available on the system
+                // And data being used during test case
                 const countries: CountriesDto = [
                     {
                         id: 1,
@@ -178,18 +162,12 @@ for (const darkMode of [true, false]) {
                         is_in_schengen: true,
                     },
                 ];
-
-                // And region to be selected during the test
                 const regionToSelect: RegionDto = {
                     id: 1,
                     name: 'test region to select',
                 };
-
-                // And regions available on the system
                 const regions: RegionsDto = [regionToSelect];
-
-                // And new airport data
-                const airport: AirportModel = {
+                const newAirport: AirportModel = {
                     name: 'test airport name',
                     iata: 'TES',
                     country_id: countries[0].id,
@@ -202,26 +180,18 @@ for (const darkMode of [true, false]) {
                 await regionsMock(page, regions);
                 await airportsMock(page, []);
 
-                // When I go to the main page
+                // And application being ready for navigation and in expected bright mode
                 await goTo(page, '/');
-
-                // And I set expected color scheme
                 await setDarkMode(page, darkMode);
-
-                // Then the dark mode is set
                 expect(assertDarkMode(page, darkMode)).toBeTruthy();
 
-                // When I navigate to Add airport page
+                // When I navigate to Add airport page and wait until it's ready
                 await addAirportPage.navigateTo();
-
-                // Then I see a progress bar
                 await addAirportPage.assertProgressBarDisplay();
-
-                // And I wait until the page is ready
                 await addAirportPage.assertReady();
 
                 // Element: Link
-                // And I perform focused link snapshot analysis
+                // Then I perform focused link snapshot analysis
                 await addAirportPage.performFocusedLinkSnapshotAnalysis('Focused link', {
                     takeLighthouseSnapshot,
                     skipAxeViolationChecks: true,
@@ -267,14 +237,14 @@ for (const darkMode of [true, false]) {
                 await addAirportPage.performFocusedButtonSnapshotAnalysis(
                     'Focused button',
                     {
-                        data: airport,
+                        data: newAirport,
                         country: countries[0].name,
                         region: regionToSelect.name,
                     },
                     {takeLighthouseSnapshot},
                 );
 
-                // Then I generate snapshot report
+                // And I generate snapshot report
                 await flow.generateReports(testInfo, 'lighthouse-test-focusable-elements-flow.html', lighthouseThresholds);
             });
         });
@@ -316,7 +286,7 @@ for (const darkMode of [true, false]) {
                             formFactor: 'mobile',
                         });
 
-                    // And countries list available on the system
+                    // And data being used during test case
                     const countries: CountriesDto = [
                         {
                             id: 1,
@@ -324,14 +294,10 @@ for (const darkMode of [true, false]) {
                             is_in_schengen: true,
                         },
                     ];
-
-                    // And region to be selected during the test
                     const regionToSelect: RegionDto = {
                         id: 1,
                         name: 'test region to select',
                     };
-
-                    // And regions available on the system
                     const regions: RegionsDto = [
                         regionToSelect,
                         {
@@ -339,9 +305,7 @@ for (const darkMode of [true, false]) {
                             name: 'test region not to select',
                         },
                     ];
-
-                    // And new airport data
-                    const airport: AirportModel = {
+                    const newAirport: AirportModel = {
                         name: 'test airport name',
                         iata: 'TES',
                         country_id: countries[0].id,
@@ -361,13 +325,9 @@ for (const darkMode of [true, false]) {
                     await airportsMock(page, []);
                     const postAirportMock = await mockPostAirportsRequest(payloadCall, 500);
 
-                    // When I go to the main page
+                    // And application being ready for navigation and in expected bright mode
                     await goTo(page, '/');
-
-                    // And I set expected color scheme
                     await setDarkMode(page, darkMode);
-
-                    // Then the dark mode is set
                     expect(assertDarkMode(page, darkMode)).toBeTruthy();
 
                     // When I navigate to Add airport page
@@ -376,33 +336,29 @@ for (const darkMode of [true, false]) {
                     // Then I see connectivity error
                     await addAirportPage.assertConnectivityError();
 
-                    // When I perform snapshot analysis for connectivity error
+                    // And I perform snapshot analysis for connectivity error
                     await addAirportPage.performSnapshotAnalysis('Connectivity error', {takeLighthouseSnapshot});
 
-                    // And I refetch data
+                    // When I refetch data
                     await addAirportPage.refetchData();
 
                     // Then I can see the page is ready
                     await addAirportPage.assertReady();
 
-                    // When I fulfill the form with correct data
-                    await addAirportPage.fulfillForm(airport, countries[0].name, regionToSelect.name);
-
-                    // And I send data to the backend
+                    // When I fulfill and send the form with correct data
+                    await addAirportPage.fulfillForm(newAirport, countries[0].name, regionToSelect.name);
                     await addAirportPage.sendData();
 
-                    // And the POST endpoint resolves
+                    // And the request responded with error
                     await postAirportMock.waitForRequest();
-
-                    // Then I can see failed addition confirmation
                     await addAirportPage.assertAdditionErrorDisplay();
 
-                    // When I perform snapshot analysis for addition confirmation
+                    // Then I perform snapshot analysis for addition confirmation
                     await addAirportPage.performSnapshotAnalysis('Airport adding error', {
                         takeLighthouseSnapshot,
                     });
 
-                    // Then I generate snapshot report
+                    // And I generate snapshot report
                     await flow.generateReports(
                         testInfo,
                         'lighthouse-test-add-airport-negative-path-failing-endpoints-journey-flow.html',
@@ -433,7 +389,7 @@ for (const darkMode of [true, false]) {
                         formFactor: 'mobile',
                     });
 
-                // And countries list available on the system
+                // And data being used during test case
                 const countries: CountriesDto = [
                     {
                         id: 1,
@@ -441,14 +397,10 @@ for (const darkMode of [true, false]) {
                         is_in_schengen: true,
                     },
                 ];
-
-                // And region to be selected for a moment during the test
                 const regionToSelect: RegionDto = {
                     id: 1,
                     name: 'test region to select',
                 };
-
-                // And regions available on the system
                 const regions: RegionsDto = [regionToSelect];
 
                 // And mocks of api calls triggered during the test
@@ -456,22 +408,16 @@ for (const darkMode of [true, false]) {
                 await countriesMock(page, countries);
                 await airportsMock(page, []);
 
-                // When I go to the main page
+                // And application being ready for navigation and in expected bright mode
                 await goTo(page, '/');
-
-                // And I set expected color scheme
                 await setDarkMode(page, darkMode);
-
-                // Then the dark mode is set
                 expect(assertDarkMode(page, darkMode)).toBeTruthy();
 
-                // When I navigate to Add airport page
+                // When I navigate to Add airport page and wait until it's ready
                 await addAirportPage.navigateTo();
-
-                // Then I can see form being ready
                 await addAirportPage.assertReady();
 
-                // When I trigger validation errors on entire form
+                // And I trigger validation errors on entire form
                 await addAirportPage.fulfillFormIncorrectly();
 
                 // Then I perform snapshot analysis for validation display

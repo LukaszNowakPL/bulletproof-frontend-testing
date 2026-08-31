@@ -15,7 +15,7 @@ describe('AppHeader', () => {
     /**
      * First two cases assert the impact of a state value into the tested component.
      */
-    it('renders dark mode toggle being off by default', async () => {
+    it('renders dark mode toggle being off by default', () => {
         // When component is rendered with no appData configuration
         renderWithContexts(<AppHeader />);
 
@@ -25,7 +25,7 @@ describe('AppHeader', () => {
         expect(switcher).not.toBeChecked();
     });
 
-    it('renders dark mode toggle being on if dark mode context flag is on', async () => {
+    it('renders dark mode toggle being on if dark mode context flag is on', () => {
         // Given appData with dark mode being on
         const appData = {
             values: {
@@ -60,16 +60,22 @@ describe('AppHeader', () => {
             dashboardUrl: `/${faker.internet.domainWord()}`,
         };
 
+        // And user-event setup
+        const user = userEvent.setup()
+
         // When component is rendered with appData configuration
         renderWithContexts(<AppHeader />, {appData});
 
-        // And user change the dark mode toggle
-        await userEvent.click(screen.getByRole('switch'));
+        // And user change the dark mode
+        await user.click(screen.getByRole('switch'));
+
+        // Then dark mode toggle is switched off
+        expect(screen.getByRole('switch')).not.toBeChecked()
 
         /**
          * We are using a helpers which are tightly coupled with component wrapper configuration.
          */
-        // And artificially click on go to dashboard button to read app data values
+        // When user artificially click on go to dashboard button to read app data values
         await clickGoToDashboard();
 
         // Then they see dark mode flag is set off in application context

@@ -1,14 +1,14 @@
 import {expect} from '@playwright/test';
 import {test} from '../playwright/fixtures';
 import {PayloadCall} from '../playwright/api-mocks/utils/PayloadCall';
-import {AddAirportPage} from './a11yPages/AddAirportPage';
-import {CountriesDto} from '../../src/api/rest/countries.dto';
-import {RegionDto, RegionsDto} from '../../src/api/rest/regions.dto';
+import {AddAirportPage} from './keyboardNavigationPages/AddAirportPage';
 import {AirportModel} from '../../src/api/rest/airports.dto';
 import {countriesMock} from '../playwright/api-mocks/countries';
 import {regionsMock} from '../playwright/api-mocks/regions';
 import {airportsMock, mockPostAirportsRequest} from '../playwright/api-mocks/airports';
 import {goTo} from '../playwright/navigation';
+import {countryFactory} from "../utils/factories/countries";
+import {regionFactory} from "../utils/factories/regions";
 
 test.describe('Add airport journey with keyboard navigation only', () => {
     let payloadCall: PayloadCall;
@@ -26,59 +26,42 @@ test.describe('Add airport journey with keyboard navigation only', () => {
          * Such navigation might be difficult to perform on entire pages with rich header section. This is why 'Skip to main content'
          * pattern comes handy and - in fact - is required according to WCAG rules.
          */
-
-        // Given countries list available on the system
-        const countries: CountriesDto = [
-            {
-                id: 1,
-                name: 'test country name',
-                is_in_schengen: true,
-            },
-        ];
-
-        // And region to be selected during the test
-        const regionToSelect: RegionDto = {
+        const country = countryFactory.build({name: 'test country name'});
+        const regionToSelect = regionFactory.build({
             id: 1,
             name: 'test region to select',
-        };
-
-        // And regions available on the system
-        const regions: RegionsDto = [
+        });
+        const regions = [
             regionToSelect,
-            {
+            regionFactory.build({
                 id: 2,
                 name: 'test region not to select',
-            },
+            }),
         ];
-
-        // And new airport data
-        const airport: AirportModel = {
+        const newAirport: AirportModel = {
             name: 'test airport name',
             iata: 'TES',
-            country_id: countries[0].id,
+            country_id: country.id,
             regions: [regionToSelect.id],
             vaccination_notes: 'test vaccination notes',
         };
-
-        // And mocks of api calls triggered during the test
-        await countriesMock(page, countries);
+        // Note: Only mocks of calls triggered during test scenario are set
+        await countriesMock(page, [country]);
         await regionsMock(page, regions);
         await airportsMock(page, []);
         const postAirportMock = await mockPostAirportsRequest(payloadCall);
 
-        // When I go to Add airport page
+        // Given application being ready for the journey
         await goTo(page, '/airports/add');
-
-        // Then I'm ready to start the journey
         await addAirportPage.assertReady();
 
         // When I fulfill and send the form
-        await addAirportPage.proceedThroughPage(airport, countries[0].name, regionToSelect.name);
+        await addAirportPage.proceedThroughPage(newAirport, country.name, regionToSelect.name);
 
         // Then POST api call is resolved with expected body
-        expect(await postAirportMock.getRequestBody()).toEqual(airport);
+        expect(await postAirportMock.getRequestBody()).toEqual(newAirport);
 
         // And addition confirmation is displayed after api call is resolved
-        await addAirportPage.assertAdditionConfirmationDisplay();
+        await addAirportPage.assertAdditionConfirmation();
     });
 });

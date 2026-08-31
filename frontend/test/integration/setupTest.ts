@@ -2,6 +2,7 @@ import '@testing-library/jest-dom';
 import {configure} from '@testing-library/react';
 import {server} from './mocks/server';
 import failOnConsole from 'vitest-fail-on-console';
+import {vi} from "vitest";
 
 /**
  * Fails vitest tests if any tested component will produce a console entry. Such functionality helps keep the console clean.
@@ -21,6 +22,12 @@ beforeAll(() =>
         },
     }),
 );
+
+// Required by radix-ui components used on tested view.
+beforeEach(() => {
+    window.HTMLElement.prototype.scrollIntoView = vi.fn();
+    window.HTMLElement.prototype.hasPointerCapture = vi.fn();
+})
 
 // Reset any request handlers to not affect other tests
 afterEach(() => server.resetHandlers());

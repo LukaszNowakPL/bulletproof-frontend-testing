@@ -1,4 +1,4 @@
-import {DefaultBodyType, delay, http, HttpResponse, StrictRequest} from 'msw';
+import {DefaultBodyType, delay as performDelay, http, HttpResponse, StrictRequest} from 'msw';
 import {AirportDto, AirportModel, AirportsDto} from '../../../src/api/rest/airports.dto';
 
 /**
@@ -26,16 +26,22 @@ export const airportHandler = (id: number, responseData: AirportDto, status = 20
  * We won't handle calls with unexpected shape, which makes the test fail.
  * Such a solution provides additional complication to testing, however, big attention is always required when it comes to such an important integration with backend services.
  */
-export const addAirportHandler = (formData: AirportModel, status = 200) => {
+export const addAirportHandler = (formData: AirportModel, status = 200, delay: boolean | {duration: number} = false) => {
     return http.post('*/api/airports', async ({request}) => {
         /**
          * It will resolve only if request body is equal to formData argument. Headers or cookies can also be part of such logic
          */
         if (await isModelCorrect(formData, request)) {
-            /**
-             * Delay added to allow to assert form element being disabled during api call.
-             */
-            await delay();
+            // Applying on-demand delay. This is handy for asserting form elements being disabled during api calls.
+            if(!!delay) {
+                if(delay === true) {
+                    // Realistic delay time set by MSW
+                    await performDelay()
+                } else {
+                    await performDelay(delay.duration);
+                }
+            }
+
             if (status == 200) {
                 return HttpResponse.json({data: formData}, {status});
             } else {

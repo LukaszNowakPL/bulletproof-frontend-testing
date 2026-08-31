@@ -1,15 +1,15 @@
 import {Locator, Page, expect} from '@playwright/test';
 
-export class A11yPage {
-    page: Page;
+export class KeyboardNavigationPage {
+    protected readonly page: Page;
 
-    private readonly KEYS = {
+    private static readonly KEYS = {
         navigateToPrevElement: 'Shift+Tab',
         navigateToNextElement: 'Tab',
         navigateToPrevGroupElement: 'ArrowUp',
         navigateToNextGroupElement: 'ArrowDown',
-        selection: 'Space',
-        action: 'Enter',
+        select: 'Space',
+        activate: 'Enter',
     };
 
     public constructor(page: Page) {
@@ -17,27 +17,27 @@ export class A11yPage {
     }
 
     private getFocusedElement() {
-        return this.page.locator('*:focus') as NotClickableLocator;
+        return this.page.locator(':focus') as NotClickableLocator;
     }
 
     public async navigateToPrevElement() {
-        await this.page.press('body', this.KEYS.navigateToPrevElement);
+        await this.page.keyboard.press(KeyboardNavigationPage.KEYS.navigateToPrevElement);
     }
 
     public async navigateToNextElement() {
-        await this.page.press('body', this.KEYS.navigateToNextElement);
+        await this.page.keyboard.press(KeyboardNavigationPage.KEYS.navigateToNextElement);
     }
 
     public async navigateToPrevGroupElement() {
-        await this.page.press('body', this.KEYS.navigateToPrevGroupElement);
+        await this.page.keyboard.press(KeyboardNavigationPage.KEYS.navigateToPrevGroupElement);
     }
 
     public async navigateToNextGroupElement() {
-        await this.page.press('body', this.KEYS.navigateToNextGroupElement);
+        await this.page.keyboard.press(KeyboardNavigationPage.KEYS.navigateToNextGroupElement);
     }
 
-    public async performAction() {
-        await this.page.press('body', this.KEYS.action);
+    public async activateFocusedElement() {
+        await this.page.keyboard.press(KeyboardNavigationPage.KEYS.activate);
     }
 
     public async fill(value: string) {
@@ -45,15 +45,11 @@ export class A11yPage {
     }
 
     public async selectFocusedElement() {
-        await this.page.press('body', this.KEYS.selection);
+        await this.page.keyboard.press(KeyboardNavigationPage.KEYS.select);
     }
 
     public async assertFocusedElement(expectedElement: Locator) {
-        expect(await this.getOuterHtml(this.getFocusedElement())).toStrictEqual(await this.getOuterHtml(expectedElement));
-    }
-
-    private async getOuterHtml(element: Locator) {
-        return await element.evaluate((node) => node.outerHTML);
+        await expect(expectedElement).toBeFocused()
     }
 
     public async assertFocusedElementHasText(text: string | RegExp) {
@@ -71,7 +67,7 @@ export class A11yPage {
 
 type NotClickableLocator = Locator & {
     click: never;
-    chceck: never;
+    check: never;
     dblclick: never;
     dragTo: never;
     hover: never;
