@@ -1,7 +1,6 @@
 import {screen, waitForElementToBeRemoved} from '@testing-library/react';
 import {describe} from 'vitest';
 import {renderWithContexts} from '../utils/render';
-import {server} from '../mocks/server';
 import {addAirportHandler, airportsHandler} from '../api-handlers/airports';
 import {AirportModel} from '../../../src/api/rest/airports.dto';
 import {countriesHandler} from '../api-handlers/countries';
@@ -11,6 +10,7 @@ import {userEvent} from '@testing-library/user-event';
 import {countryFactory} from '../../utils/factories/countries';
 import {regionFactory} from '../../utils/factories/regions';
 import {airportFactory} from '../../utils/factories/airports';
+import {it} from '../tests-env/itExtend';
 
 /**
  * Here we test all functionalities of AddAirportView guard and its subcomponents.
@@ -41,7 +41,7 @@ describe('AddAirportView.guard', () => {
          * You may consider creating separate scenarios - the one with all fields being fulfilled, and the basic one with only required fields being sent.
          * This is for better assertion of minimum contract agreement and confirming how additional fields are translated into the Post request body.
          */
-        it('renders component and adds airport', async () => {
+        it('renders component and adds airport', async ({server}) => {
             /**
              * Right now we set the scene for future testing.
              * Any piece of data used during the scenario (i.e. typed into field or sent through the api call) should get set here. Anything else should get randomized.
@@ -91,11 +91,16 @@ describe('AddAirportView.guard', () => {
              * It's good pattern, as the test scenario should be aware of data it operates on. As stated previously, it is a mixture of hardcoded and randomized data (if it's not relevant for such a test case).
              */
             // And mocks of api calls triggered during the test
-            const isPostApiDelay = true
-            server.use(countriesHandler([country]), regionsHandler([region]), airportsHandler([]), addAirportHandler(newAirport, 200, isPostApiDelay));
+            const isPostApiDelay = true;
+            server.use(
+                countriesHandler([country]),
+                regionsHandler([region]),
+                airportsHandler([]),
+                addAirportHandler(newAirport, 200, isPostApiDelay),
+            );
 
             // And user-event setup, via https://testing-library.com/docs/user-event/intro/#writing-tests-with-userevent
-            const user = userEvent.setup()
+            const user = userEvent.setup();
 
             /**
              * Now we pass the tested view to the component wrapper, which takes care of rendering within the context of high level integrations.
@@ -178,9 +183,9 @@ describe('AddAirportView.guard', () => {
          * This could be anything on a real world - a backend service being down, lack of authorization or internet connection problems. From the front-end application's perspective it is an endpoint responding with 4XX or 5XX class responses.
          * As the behavior is the same for any endpoint, we can use 'each' grouping pattern here.
          */
-        it.each<string>(['airports', 'countries', 'regions'])(
+        it.for<string>(['airports', 'countries', 'regions'])(
             'displays connectivity error when GET /%s fails',
-            async (failingEndpoint) => {
+            async (failingEndpoint, {server}) => {
                 /**
                  * All endpoints may return empty arrays. We won't use them on tests, because we want Error message to be displayed.
                  */
@@ -192,7 +197,7 @@ describe('AddAirportView.guard', () => {
                 );
 
                 // And user-event setup
-                const user = userEvent.setup()
+                const user = userEvent.setup();
 
                 // When component render
                 renderWithContexts(<AddAirportViewGuard />, {routingPath: '/airports/add', browserUrl: '/airports/add'});
@@ -238,7 +243,7 @@ describe('AddAirportView.guard', () => {
          * There is a trend to create test case per field. From my experience, however, this leads to tons of setting-up's boilerplate, as well as unintentional skipping checks of some fields.
          * I recommend to perform assertions in one test case, travelling field-by-field in order of their appearance on the screen.
          */
-        it('renders validation errors', async () => {
+        it('renders validation errors', async ({server}) => {
             /**
              * We must set the scene as it was a happy path scenario, up to the Post api endpoint mock.
              */
@@ -256,7 +261,7 @@ describe('AddAirportView.guard', () => {
                 vaccination_notes: 'test vaccination notes',
             };
             server.use(countriesHandler([country]), regionsHandler([region]), airportsHandler([existingAirport]));
-            const user = userEvent.setup()
+            const user = userEvent.setup();
 
             // Given component is ready for data insertion
             renderWithContexts(<AddAirportViewGuard />, {routingPath: '/airports/add', browserUrl: '/airports/add'});
@@ -350,7 +355,7 @@ describe('AddAirportView.guard', () => {
         /**
          * The last possible blocker is when the Post api endpoint responds with an error for any reason.
          */
-        it('displays error message on Post call api failure', async () => {
+        it('displays error message on Post call api failure', async ({server}) => {
             /**
              * The setup and test scenario are almost identical to a Happy path.
              * We only must take care of the Post api responding with error and asserting the proper message is being displayed.
@@ -375,7 +380,7 @@ describe('AddAirportView.guard', () => {
                 // Post endpoint responding with error
                 addAirportHandler(newAirport, 500, true),
             );
-            const user = userEvent.setup()
+            const user = userEvent.setup();
 
             // Given component is ready for data insertion
             renderWithContexts(<AddAirportViewGuard />, {routingPath: '/airports/add', browserUrl: '/airports/add'});
