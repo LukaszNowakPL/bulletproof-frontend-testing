@@ -1,5 +1,5 @@
 /**
- * This polyfill is related with Radix ui implementation and the fact that Vitest tests use Jsdom instead of browser environment.
+ * This polyfill is related with Radix ui implementation and the Jsdom env Vitest tests. It should not apply to Browser mode tests.
  * Taken from https://github.com/joaom00/radix-select-vitest/blob/main/src/HoverCard.test.tsx
  * Based on discussion https://github.com/radix-ui/primitives/issues/2002
  */

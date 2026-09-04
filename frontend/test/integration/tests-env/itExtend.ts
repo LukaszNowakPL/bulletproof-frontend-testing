@@ -1,29 +1,23 @@
 import {it as itBase} from 'vitest';
-import {server} from '../mocks/server';
+import {worker} from '../mocks/browser.js';
 
-type Server = typeof server;
+type Worker = typeof worker;
 
 export const it = itBase.extend<{
-    server: Server;
+    worker: Worker;
 }>({
-    server: [
+    worker: [
         // eslint-disable-next-line no-empty-pattern
         async ({}, use) => {
-            /**
-             * onUnhandledRequest configuration prints console error if there is any unexpected api call triggered.
-             */
-            server.listen({
-                onUnhandledRequest({method, url}) {
-                    console.error('Found an unhandled %s request to %s', method, url);
-                },
-            });
+            // Start the worker before the test.
+            await worker.start();
 
-            // Expose the server object on the test's context.
-            await use(server);
+            // Expose the worker object on the test's context.
+            await use(worker);
 
-            // Cleanup request handlers added in individual test cases to prevent them affecting unrelated tests.
-            server.resetHandlers();
-            server.close();
+            // Remove any request handlers added in individual test cases.
+            // This prevents them from affecting unrelated tests.
+            worker.resetHandlers();
         },
         {
             auto: true,

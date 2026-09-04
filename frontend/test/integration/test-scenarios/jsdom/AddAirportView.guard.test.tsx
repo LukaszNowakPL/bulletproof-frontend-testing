@@ -1,16 +1,16 @@
 import {screen, waitForElementToBeRemoved} from '@testing-library/react';
 import {describe} from 'vitest';
-import {renderWithContexts} from '../utils/render';
-import {addAirportHandler, airportsHandler} from '../api-handlers/airports';
-import {AirportModel} from '../../../src/api/rest/airports.dto';
-import {countriesHandler} from '../api-handlers/countries';
-import {regionsHandler} from '../api-handlers/regions';
-import {AddAirportViewGuard} from '../../../src/views/AddAirportView/AddAirportView.guard';
+import {renderWithContexts} from '../../utils/render';
+import {addAirportHandler, airportsHandler} from '../../api-handlers/airports';
+import {AirportModel} from '../../../../src/api/rest/airports.dto';
+import {countriesHandler} from '../../api-handlers/countries';
+import {regionsHandler} from '../../api-handlers/regions';
+import {AddAirportViewGuard} from '../../../../src/views/AddAirportView/AddAirportView.guard';
 import {userEvent} from '@testing-library/user-event';
-import {countryFactory} from '../../utils/factories/countries';
-import {regionFactory} from '../../utils/factories/regions';
-import {airportFactory} from '../../utils/factories/airports';
-import {it} from '../tests-env/itExtend';
+import {countryFactory} from '../../../utils/factories/countries';
+import {regionFactory} from '../../../utils/factories/regions';
+import {airportFactory} from '../../../utils/factories/airports';
+import {it} from '../../tests-env/itExtendJsdom';
 
 /**
  * Here we test all functionalities of AddAirportView guard and its subcomponents.
