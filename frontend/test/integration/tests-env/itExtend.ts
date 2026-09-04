@@ -7,7 +7,8 @@ export const it = itBase.extend<{
     server: Server;
 }>({
     server: [
-        async (_, use) => {
+        // eslint-disable-next-line no-empty-pattern
+        async ({}, use) => {
             /**
              * onUnhandledRequest configuration prints console error if there is any unexpected api call triggered.
              */

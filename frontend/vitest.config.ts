@@ -3,10 +3,14 @@
 import react from '@vitejs/plugin-react';
 import {defineConfig} from 'vitest/config';
 
+const jsdomInclude = 'test/integration/test-scenarios/jsdom/**/*.test.ts?(x)';
+
 export default defineConfig({
     plugins: [react()],
     test: {
-        outputFile: './reports/test-report.xml',
+        outputFile: {
+            junit: './reports/integration.xml',
+        },
         coverage: {
             provider: 'istanbul',
             reporter: ['lcov'],
@@ -14,11 +18,32 @@ export default defineConfig({
         },
         reporters: ['verbose', 'junit'],
         clearMocks: true,
-        include: ['test/integration/**/*.test.ts?(x)'],
         globals: true,
         environment: 'jsdom',
         sequence: {shuffle: true},
         fileParallelism: true,
-        setupFiles: ['./test/integration/polyfills.ts', './test/integration/setupTest.ts', './test/integration/itExtend.ts'],
+        restoreMocks: true,
+        setupFiles: [
+            './test/integration/tests-env/polyfills.ts',
+            './test/integration/tests-env/setupTest.ts',
+            './test/integration/tests-env/itExtend.ts',
+        ],
+        projects: [
+            {
+                extends: true,
+                test: {
+                    name: 'jsdom',
+                    include: [jsdomInclude],
+                },
+            },
+            {
+                extends: true,
+                test: {
+                    name: 'future-browser',
+                    include: ['test/integration/test-scenarios/**/*.test.ts?(x)'],
+                    exclude: [jsdomInclude],
+                },
+            },
+        ],
     },
 });

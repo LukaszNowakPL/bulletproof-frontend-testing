@@ -1,19 +1,19 @@
 import {describe, vi} from 'vitest';
 import {RouterProvider} from 'react-router';
 import {createMemoryRouter, Outlet} from 'react-router';
-import {routerDefinition} from '../../../src/components/AppRouter/AppRouter';
+import {routerDefinition} from '../../../../src/components/AppRouter/AppRouter';
 import {render, waitFor} from '@testing-library/react';
-import {App} from '../../../src/components/App/App';
-import {AppError} from '../../../src/components/AppError/AppError';
-import {AirportsViewGuard} from '../../../src/views/AirportsView/AirportsView.guard';
-import {AirportViewGuard} from '../../../src/views/AirportView/AirportView.guard';
-import {AddAirportViewGuard} from '../../../src/views/AddAirportView/AddAirportView.guard';
+import {App} from '../../../../src/components/App/App';
+import {AppError} from '../../../../src/components/AppError/AppError';
+import {AirportsViewGuard} from '../../../../src/views/AirportsView/AirportsView.guard';
+import {AirportViewGuard} from '../../../../src/views/AirportView/AirportView.guard';
+import {AddAirportViewGuard} from '../../../../src/views/AddAirportView/AddAirportView.guard';
 
-vi.mock('../../../src/components/App/App');
-vi.mock('../../../src/components/AppError/AppError');
-vi.mock('../../../src/views/AirportsView/AirportsView.guard');
-vi.mock('../../../src/views/AirportView/AirportView.guard');
-vi.mock('../../../src/views/AddAirportView/AddAirportView.guard');
+vi.mock('../../../../src/components/App/App');
+vi.mock('../../../../src/components/AppError/AppError');
+vi.mock('../../../../src/views/AirportsView/AirportsView.guard');
+vi.mock('../../../../src/views/AirportView/AirportView.guard');
+vi.mock('../../../../src/views/AddAirportView/AddAirportView.guard');
 
 /**
  * Helps render applications in router configuration context.
@@ -75,8 +75,6 @@ describe('AppRouter', () => {
             </>,
         );
     });
-
-    afterEach(vi.clearAllMocks);
 
     describe('Route views proper display', () => {
         it('renders only AirportsViewGuard on /airports', async () => {
@@ -154,21 +152,33 @@ describe('AppRouter', () => {
             const routeConfig = ['/any'];
 
             // And App throws error
+            const errorContent = 'any error';
             vi.mocked(App).mockImplementation(() => {
-                throw new Error('any error');
+                throw new Error(errorContent);
             });
 
-            // And console error is muted due to expected Error being thrown during the test
-            vi.spyOn(console, 'error').mockImplementation(() => {});
+            // And console errors are muted due to expected Error being thrown during the test
+            // > muting errors thrown to browser's console (via React Router > errorElement)
+            const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+            // > muting errors thrown to test's console (via React 18 > error event > jsdom > Vitest)
+            const windowErrorHandler = (event: ErrorEvent) => {
+                if (event.error instanceof Error && event.error.message === errorContent) {
+                    event.preventDefault();
+                }
+            };
+            window.addEventListener('error', windowErrorHandler);
 
-            // When component render
-            const {container} = renderComponent(routeConfig);
+            try {
+                // When component render
+                const {container} = renderComponent(routeConfig);
 
-            // Then only AppError is displayed
-            await waitFor(() => expect(container.innerHTML).toBe('<p>Mocked AppError</p>'));
-
-            // And console.error is unmuted for following tests
-            vi.resetAllMocks();
+                // Then only AppError is displayed
+                await waitFor(() => expect(container.innerHTML).toBe('<p>Mocked AppError</p>'));
+            } finally {
+                // And console.errors are unmuted for following tests
+                window.removeEventListener('error', windowErrorHandler);
+                consoleErrorSpy.mockRestore();
+            }
         });
     });
 });
