@@ -10,7 +10,7 @@ export const it = itBase.extend<{
         // eslint-disable-next-line no-empty-pattern
         async ({}, use) => {
             // Start the worker before the test.
-            await worker.start();
+            await worker.start({quiet: true});
 
             // Expose the worker object on the test's context.
             await use(worker);
@@ -18,6 +18,7 @@ export const it = itBase.extend<{
             // Remove any request handlers added in individual test cases.
             // This prevents them from affecting unrelated tests.
             worker.resetHandlers();
+            worker.stop();
         },
         {
             auto: true,

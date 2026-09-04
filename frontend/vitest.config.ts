@@ -31,11 +31,6 @@ export default defineConfig({
                     name: 'jsdom',
                     include: [jsdomInclude],
                     environment: 'jsdom',
-                    setupFiles: [
-                        './test/integration/tests-env/polyfills.ts',
-                        './test/integration/tests-env/setupJsdomTest.ts',
-                        './test/integration/tests-env/itExtendJsdom.ts',
-                    ],
                 },
             },
             {

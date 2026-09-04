@@ -1,16 +1,16 @@
 import {screen, waitForElementToBeRemoved} from '@testing-library/react';
 import {describe} from 'vitest';
-import {renderWithContexts} from '../../utils/render';
-import {addAirportHandler, airportsHandler} from '../../api-handlers/airports';
-import {AirportModel} from '../../../../src/api/rest/airports.dto';
-import {countriesHandler} from '../../api-handlers/countries';
-import {regionsHandler} from '../../api-handlers/regions';
-import {AddAirportViewGuard} from '../../../../src/views/AddAirportView/AddAirportView.guard';
+import {renderWithContexts} from '../utils/render';
+import {addAirportHandler, airportsHandler} from '../api-handlers/airports';
+import {AirportModel} from '../../../src/api/rest/airports.dto';
+import {countriesHandler} from '../api-handlers/countries';
+import {regionsHandler} from '../api-handlers/regions';
+import {AddAirportViewGuard} from '../../../src/views/AddAirportView/AddAirportView.guard';
 import {userEvent} from '@testing-library/user-event';
-import {countryFactory} from '../../../utils/factories/countries';
-import {regionFactory} from '../../../utils/factories/regions';
-import {airportFactory} from '../../../utils/factories/airports';
-import {it} from '../../tests-env/itExtendJsdom';
+import {countryFactory} from '../../utils/factories/countries';
+import {regionFactory} from '../../utils/factories/regions';
+import {airportFactory} from '../../utils/factories/airports';
+import {it} from '../tests-env/itExtend';
 
 /**
  * Here we test all functionalities of AddAirportView guard and its subcomponents.
@@ -41,7 +41,7 @@ describe('AddAirportView.guard', () => {
          * You may consider creating separate scenarios - the one with all fields being fulfilled, and the basic one with only required fields being sent.
          * This is for better assertion of minimum contract agreement and confirming how additional fields are translated into the Post request body.
          */
-        it('renders component and adds airport', async ({server}) => {
+        it('renders component and adds airport', async ({worker}) => {
             /**
              * Right now we set the scene for future testing.
              * Any piece of data used during the scenario (i.e. typed into field or sent through the api call) should get set here. Anything else should get randomized.
@@ -92,7 +92,7 @@ describe('AddAirportView.guard', () => {
              */
             // And mocks of api calls triggered during the test
             const isPostApiDelay = true;
-            server.use(
+            worker.use(
                 countriesHandler([country]),
                 regionsHandler([region]),
                 airportsHandler([]),
@@ -185,12 +185,12 @@ describe('AddAirportView.guard', () => {
          */
         it.for<string>(['airports', 'countries', 'regions'])(
             'displays connectivity error when GET /%s fails',
-            async (failingEndpoint, {server}) => {
+            async (failingEndpoint, {worker}) => {
                 /**
                  * All endpoints may return empty arrays. We won't use them on tests, because we want Error message to be displayed.
                  */
                 // Given mocks of api calls triggered during the test with only one responding with error
-                server.use(
+                worker.use(
                     airportsHandler([], failingEndpoint !== 'airports' ? 200 : 500),
                     countriesHandler([], failingEndpoint !== 'countries' ? 200 : 500),
                     regionsHandler([], failingEndpoint !== 'regions' ? 200 : 500),
@@ -243,7 +243,7 @@ describe('AddAirportView.guard', () => {
          * There is a trend to create test case per field. From my experience, however, this leads to tons of setting-up's boilerplate, as well as unintentional skipping checks of some fields.
          * I recommend to perform assertions in one test case, travelling field-by-field in order of their appearance on the screen.
          */
-        it('renders validation errors', async ({server}) => {
+        it('renders validation errors', async ({worker}) => {
             /**
              * We must set the scene as it was a happy path scenario, up to the Post api endpoint mock.
              */
@@ -260,7 +260,7 @@ describe('AddAirportView.guard', () => {
                 regions: [region.id],
                 vaccination_notes: 'test vaccination notes',
             };
-            server.use(countriesHandler([country]), regionsHandler([region]), airportsHandler([existingAirport]));
+            worker.use(countriesHandler([country]), regionsHandler([region]), airportsHandler([existingAirport]));
             const user = userEvent.setup();
 
             // Given component is ready for data insertion
@@ -355,7 +355,7 @@ describe('AddAirportView.guard', () => {
         /**
          * The last possible blocker is when the Post api endpoint responds with an error for any reason.
          */
-        it('displays error message on Post call api failure', async ({server}) => {
+        it('displays error message on Post call api failure', async ({worker}) => {
             /**
              * The setup and test scenario are almost identical to a Happy path.
              * We only must take care of the Post api responding with error and asserting the proper message is being displayed.
@@ -372,7 +372,7 @@ describe('AddAirportView.guard', () => {
                 regions: [region.id],
                 vaccination_notes: 'test vaccination notes',
             };
-            server.use(
+            worker.use(
                 // Get endpoints
                 countriesHandler([country]),
                 regionsHandler([region]),
@@ -419,6 +419,9 @@ describe('AddAirportView.guard', () => {
             for (const element of interactiveElements) {
                 expect(element).toBeDisabled();
             }
+
+            // And error message appears again
+            expect(await screen.findByRole('status')).toBeInTheDocument();
         });
     });
 });

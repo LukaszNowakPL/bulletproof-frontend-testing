@@ -10,6 +10,7 @@ import React from 'react';
 import {AppDataProvider, AppDataValues} from '../../../src/context/AppDataContext/AppDataContext';
 import {AppDataDashboardNavigation} from './AppDataDashboard/AppDataDashboardNavigation';
 import {AppDataDashboard} from './AppDataDashboard/AppDataDashboard';
+import '@radix-ui/themes/styles.css';
 
 export interface RenderWithContextsAppDataOptions {
     // Current snapshot of an application state. It has to be of type declared on AppDataContext
