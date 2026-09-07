@@ -1,8 +1,7 @@
-import {screen} from '@testing-library/react';
-import {describe} from 'vitest';
+import {describe, expect, it} from 'vitest';
 import {AppHeader} from '../../../src/components/AppHeader/AppHeader';
 import {renderWithContexts, RenderWithContextsAppDataOptions} from '../utils/render';
-import {userEvent} from '@testing-library/user-event';
+import {userEvent} from 'vitest/browser';
 import {assertAppDataValue, clickGoToDashboard} from '../utils/AppDataDashboard/helpers';
 import {faker} from '@faker-js/faker';
 
@@ -15,17 +14,17 @@ describe('AppHeader', () => {
     /**
      * First two cases assert the impact of a state value into the tested component.
      */
-    it('renders dark mode toggle being off by default', () => {
+    it('renders dark mode toggle being off by default', async () => {
         // When component is rendered with no appData configuration
-        renderWithContexts(<AppHeader />);
+        const {screen} = await renderWithContexts(<AppHeader />);
 
         // Then dark mode toggle is switched off
         const switcher = screen.getByRole('switch', {name: /dark mode/i});
-        expect(switcher).toBeInTheDocument();
-        expect(switcher).not.toBeChecked();
+        await expect.element(switcher).toBeInTheDocument();
+        await expect.element(switcher).not.toBeChecked();
     });
 
-    it('renders dark mode toggle being on if dark mode context flag is on', () => {
+    it('renders dark mode toggle being on if dark mode context flag is on', async () => {
         // Given appData with dark mode being on
         const appData = {
             values: {
@@ -35,11 +34,11 @@ describe('AppHeader', () => {
         };
 
         // When component is rendered with appData configuration
-        renderWithContexts(<AppHeader />, {appData});
+        const {screen} = await renderWithContexts(<AppHeader />, {appData});
 
         // Then dark mode toggle is switched on
         const switcher = screen.getByRole('switch');
-        expect(switcher).toBeChecked();
+        await expect.element(switcher).toBeChecked();
     });
 
     /**
@@ -60,17 +59,14 @@ describe('AppHeader', () => {
             dashboardUrl: `/${faker.internet.domainWord()}`,
         };
 
-        // And user-event setup
-        const user = userEvent.setup()
-
         // When component is rendered with appData configuration
-        renderWithContexts(<AppHeader />, {appData});
+        const {screen} = await renderWithContexts(<AppHeader />, {appData});
 
         // And user change the dark mode
-        await user.click(screen.getByRole('switch'));
+        await userEvent.click(screen.getByRole('switch'));
 
         // Then dark mode toggle is switched off
-        expect(screen.getByRole('switch')).not.toBeChecked()
+        await expect.element(screen.getByRole('switch')).not.toBeChecked();
 
         /**
          * We are using a helpers which are tightly coupled with component wrapper configuration.

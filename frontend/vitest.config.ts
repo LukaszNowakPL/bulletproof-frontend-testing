@@ -45,6 +45,7 @@ export default defineConfig({
                         // headless: true,
                         provider: playwright(),
                         instances: [{browser: 'chromium'}],
+                        locators: {testIdAttribute: 'data-test-id'},
                     },
                 },
             },

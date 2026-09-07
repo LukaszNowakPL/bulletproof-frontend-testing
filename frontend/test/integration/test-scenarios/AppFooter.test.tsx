@@ -1,5 +1,5 @@
-import {render, screen} from '@testing-library/react';
-import {describe} from 'vitest';
+import {render} from 'vitest-browser-react';
+import {describe, expect, it} from 'vitest';
 import {renderWithContexts} from '../utils/render';
 import {AppFooter} from '../../../src/components/AppFooter/AppFooter';
 
@@ -9,11 +9,11 @@ describe('AppFooter', () => {
      * As you can see, it's the scale of single milliseconds, something more like a statistical error, than anything you should bother of.
      */
     it('renders raw Notification component', async () => {
-        render(<AppFooter />);
-        expect(screen.getByText('Łukasz Nowak')).toBeInTheDocument();
+        const screen = await render(<AppFooter />);
+        await expect.element(screen.getByText('Łukasz Nowak')).toBeInTheDocument();
     });
     it('renders Notification component wrapped in component wrappers', async () => {
-        renderWithContexts(<AppFooter />);
-        expect(screen.getByText('Łukasz Nowak')).toBeInTheDocument();
+        const {screen} = await renderWithContexts(<AppFooter />);
+        await expect.element(screen.getByText('Łukasz Nowak')).toBeInTheDocument();
     });
 });

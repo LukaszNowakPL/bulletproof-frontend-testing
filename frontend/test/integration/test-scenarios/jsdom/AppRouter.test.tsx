@@ -1,4 +1,4 @@
-import {describe, vi} from 'vitest';
+import {describe, vi, beforeEach, it, expect} from 'vitest';
 import {RouterProvider} from 'react-router';
 import {createMemoryRouter, Outlet} from 'react-router';
 import {routerDefinition} from '../../../../src/components/AppRouter/AppRouter';
