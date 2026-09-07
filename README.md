@@ -26,9 +26,11 @@ The `visual snapshot comparison` tests cover visual regression of application. T
 
 The `accessibility tests` consist of two branches. First performs a series of accessibility-related audits over a given snapshot. Currently, this is Axe and Lighthouse auditing. It also performs accessibility tree regression by comparing snapshots representation stored on static yml files. The second branch is a functional user journey with navigation performed using keyboards only. This is for simulating using assistive technologies for navigation. Such scenarios are part of the functional tests suite.
 
+The `integration` suite of tests is split into two projects. The majority of test cases happen in browser mode of `vitest`. Currently the `radix-ui/themes` library used for application design does not cooperate well with headed browser mode - this is a case of `CheckboxGroup` component. It requires little hacking for selecting the checkbox, which is well explained on a test file. Testing of `AppRouter` configuration mocks entire Views for simplicity matters. As object mocking is complicated in a browser mode, such assertions happen in a traditional jsdom mode.
+
 ## Commands available
 
-Please run commands on a given order. 
+Please run commands on a given order.
 
 `npm install` for installing dependencies of overall project.
 

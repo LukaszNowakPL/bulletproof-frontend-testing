@@ -5,6 +5,7 @@ import {defineConfig} from 'vitest/config';
 import {playwright} from '@vitest/browser-playwright';
 
 const jsdomInclude = 'test/integration/test-scenarios/jsdom/**/*.test.ts?(x)';
+const IS_CI = Boolean(process.env.CI);
 
 export default defineConfig({
     plugins: [react()],
@@ -36,13 +37,13 @@ export default defineConfig({
             {
                 extends: true,
                 test: {
-                    name: 'future-browser',
+                    name: 'browser',
                     include: ['test/integration/test-scenarios/**/*.test.ts?(x)'],
                     exclude: [jsdomInclude],
                     setupFiles: ['./test/integration/tests-env/itExtend.ts'],
                     browser: {
                         enabled: true,
-                        // headless: true,
+                        headless: IS_CI,
                         provider: playwright(),
                         instances: [{browser: 'chromium'}],
                         locators: {testIdAttribute: 'data-test-id'},
