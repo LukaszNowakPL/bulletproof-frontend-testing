@@ -50,7 +50,9 @@ Please run commands on a given order.
 
 `npm run test-frontend` for all tests of frontend project. This will fire integration, functional, accessibility and snapshot testing suites.
 
-`npm run test-frontend-integration` runs integration testing suite in Vitest, MSW and Testing library.
+`npm run test-frontend-integration` runs integration testing suite in Vitest and MSW.
+
+`npm run integration-tests-report` opens Vitest tests report in the browser using http://localhost:4173/ url
 
 `npm run test-frontend-functional` runs functional testing suite in Playwright. It tests against production build with mocked backend integration, covering functionalities and partially accessibility.
 

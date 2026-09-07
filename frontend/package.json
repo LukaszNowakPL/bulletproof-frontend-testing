@@ -15,6 +15,7 @@
         "test:snapshot:windows": "playwright install chromium && npm run script:change-line-delimiter-to-windows && playwright test --project=snapshot && npm run script:change-line-delimiter-to-git",
         "test:snapshot:update": "playwright install chromium && playwright test --project=snapshot --update-snapshots",
         "test:snapshot:update:windows": "playwright install chromium && npm run script:change-line-delimiter-to-windows && playwright test --project=snapshot --update-snapshots && npm run script:change-line-delimiter-to-git",
+        "integration-tests-report": "npx vite preview --outDir .vitest",
         "lint": "eslint --report-unused-disable-directives --max-warnings=0 src",
         "typecheck": "tsc -noEmit",
         "prepare": "husky install",

@@ -12,13 +12,14 @@ export default defineConfig({
     test: {
         outputFile: {
             junit: './reports/integration.xml',
+            html: './reports/integration.html',
         },
         coverage: {
             provider: 'istanbul',
             reporter: ['lcov'],
             include: ['src'],
         },
-        reporters: ['verbose', 'junit'],
+        reporters: ['verbose', 'junit', 'html'],
         clearMocks: true,
         globals: true,
         sequence: {shuffle: true},

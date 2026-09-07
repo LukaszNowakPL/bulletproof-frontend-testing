@@ -16,6 +16,7 @@
         "test-frontend-integration": "npm --prefix ./frontend run test:integration",
         "test-frontend-functional": "npm --prefix ./frontend run test:functional",
         "test-frontend-snapshot:windows": "npm --prefix ./frontend run test:snapshot:windows",
+        "integration-tests-report": "npm --prefix ./frontend run integration-tests-report",
         "all-tests": "npm run test-frontend",
         "prepare": "husky install",
         "reformat": "npm --prefix ./frontend run reformat",
