@@ -67,7 +67,7 @@ export const renderWithContexts = (component: React.ReactElement, options: Rende
                                     /**
                                      * The Outlet component is going to be exchanged by:
                                      * - 'component' if 'browser' is on routingPath url
-                                     * - AppDataDashboard if 'browser' is on appData.dashborddUrl
+                                     * - AppDataDashboard if 'browser' is on appData.dashboardUrl
                                      * - an empty <div /> component if 'browser' is on any other url (i.e. after redirection triggered by user)
                                      */
                                     element={
